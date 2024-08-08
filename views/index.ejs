@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChessGame</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .chessboard {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        grid-template-rows: repeat(8, minmax(0, 1fr));
+        width: 400px;
+        height: 400px;
+        transform: rotate(0deg);
+      }
+
+      .piece.white {
+        color: white;
+        filter: drop-shadow(0 0 2px rgba(0, 0, 0, 1));
+      }
+
+      .piece.black {
+        color: black;
+      }
+
+      .flipped {
+        transform: rotate(180deg);
+      }
+
+      .square {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .square.light {
+        background-color: #f0d9b5;
+      }
+
+      .square.dark {
+        background-color: #b58863;
+      }
+
+      .piece {
+        font-size: 36px;
+        cursor: pointer;
+      }
+
+      .piece.draggable {
+        cursor: grab;
+      }
+
+      .dragging {
+        opacity: 0.5;
+      }
+
+      /* Rotate pieces for black player */
+      .flipped .piece {
+        transform: rotate(180deg);
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 200px;
+        height: 100vh;
+        background-color: black;
+
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding-top: 40px;
+      }
+      .sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .sidebar li {
+        margin-bottom: 10px;
+        margin-top: 0px;
+      }
+      .sidebar a {
+        color: #fff;
+        text-decoration: none;
+      }
+      .bg-green-500 {
+        background-color: #34c759;
+        width: 100%;
+      }
+
+      /* div {
+        border: 1px solid white;
+      }
+      [id]::before {
+        content: "#" attr(id);
+        position: absolute;
+
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        padding: 2px 4px;
+        font-size: 12px;
+        z-index: 10;
+      } */
+    </style>
+  </head>
+  <body>
+    <!--Lets play button and chessboard classes-->
+    <div
+      id="main-container"
+      class="w-full h-screen flex flex-col bg-black inline-flex"
+    >
+      <!--Sidebar-->
+      <div id="sidebar" class="sidebar">
+        <button
+          type="button"
+          class="bg-white text-violet-800 font-bold py-2 px-4 rounded w-40"
+        >
+          Chess.io
+        </button>
+        <ul>
+          <li>
+            <button
+              id="start-button"
+              class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded w-full"
+            >
+              New Game
+            </button>
+          </li>
+          <li>
+            <button
+              id="load-button"
+              class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded w-full"
+            >
+              Load Game
+            </button>
+          </li>
+          <li>
+            <button
+              id="settings-button"
+              class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded w-full"
+            >
+              Settings
+            </button>
+          </li>
+        </ul>
+      </div>
+      <!-- NAME CONTAINER -->
+      <div
+        id="username-container"
+        class="bg-zinc-900 flex justify-center items-center font-mono"
+      ></div>
+      <!-- Rest of Screen -->
+      <div id="rest" class="flex gap-6">
+        <!-- CHESSBOAARD CONTAINER -->
+        <div
+          id="chessboard-container"
+          class="flex inline-flex flex-col bg-black ml-48 inline-block justify-center h-screen gap-4"
+        >
+          <div
+            id="chess-image"
+            class="flex w-96 h-96 ml-40 justify-center items-center border-white border-2"
+          >
+            <img
+              src="/images/chessboard.png"
+              alt="Chess-board"
+              class="w-full h-full object-cover"
+            />
+          </div>
+          <div
+            id="chessboard-id"
+            class="chessboard hidden w-96 h-96 ml-8 border-2"
+          ></div>
+          <button
+            id="call-button"
+            class="hidden w-96 bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded inline-block ml-8"
+          >
+            Call
+          </button>
+          <div id="callNotification" class="ml-40 hidden">
+            <p class="text-2xl text-white font-mono">Incoming call...</p>
+            <button
+              id="acceptCall"
+              class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded w-1/3"
+            >
+              Accept
+            </button>
+            <button
+              id="declineCall"
+              class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded w-1/3"
+            >
+              Decline
+            </button>
+          </div>
+        </div>
+        <!-- VIDEO CONTAINER -->
+        <div
+          id="video-container"
+          class="hidden flex justify-center h-screen w-full flex-col items-center gap-8"
+        >
+          <div id="localVideoContainer" class="video-container">
+            <video
+              id="local-video"
+              autoplay
+              class="w-96 h-64 border border-white"
+              muted
+            ></video>
+            <div class="button-container">
+              <button
+                id="muteAudio"
+                class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded w-1/3"
+              >
+                Mute Audio
+              </button>
+              <button
+                id="muteVideo"
+                class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded w-1/3"
+              >
+                Video Off
+              </button>
+            </div>
+          </div>
+          <video
+            id="remote-video"
+            class="w-96 h-64 border border-white"
+          ></video>
+        </div>
+        <!-- HEADLINE -->
+        <div id="headline" class="flex flex-col justify-center mb-64">
+          <h1
+            id="starting-headline"
+            class="flex font-bold text-white text-5xl items-center"
+          >
+            UNLEASH YOUR INNER <BR /> GRANDMASTER
+            <!-- <span class="inner-word text-violet-800">GRANDMASTER</span> -->
+          </h1>
+
+          <h3 class="flex text-white justify-center items-center">
+            AFTER STARTING THE GAME YOU CAN CALL YOUR OPPONENT FOR A VIDEO CHAT!
+          </h3>
+          <br />
+          <button
+            id="start-button2"
+            class="bg-violet-800 hover:bg-violet-500 text-white font-bold py-2 px-4 rounded"
+          >
+            New Game
+          </button>
+        </div>
+      </div>
+      <!--//Waiting screen class-->
+      <div
+        id="waiting-screen"
+        class="hidden flex w-full ml-0 h-screen flex-grow font-bold text-white text-center justify-center items-center"
+      >
+        <p class="text-center">Waiting for the other player to join ...</p>
+      </div>
+    </div>
+
+    <!--socket io cdn-->
+    <script
+      src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+      integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+      crossorigin="anonymous"
+    ></script>
+    <!--chess js cdn-->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"
+      integrity="sha512-xRllwz2gdZciIB+AkEbeq+gVhX8VB8XsfqeFbUh+SzHlN96dEduwtTuVuc2u9EROlmW9+yhRlxjif66ORpsgVA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <!--simple peers cdn-->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer/simplepeer.min.js"></script>
+
+    <script src="js\chessgame.js"></script>
+
+    <script>
+      // Get the user's name from local storage
+      const userName = localStorage.getItem("username");
+      console.log(userName);
+      //Get the start button and chessboard container
+      const startButton = document.getElementById("start-button");
+      const startButton2 = document.getElementById("start-button2");
+      const chessboardid = document.getElementById("chessboard-id");
+      const chessimage = document.getElementById("chess-image");
+      const headline = document.getElementById("headline");
+      const chessboardContainer = document.getElementById(
+        "chessboard-container"
+      );
+
+      const call = document.getElementById("call-button");
+      const rest = document.getElementById("rest");
+      const videos = document.getElementById("video-container");
+      //Get the waiting screen element
+      const waitingScreen = document.getElementById("waiting-screen");
+
+      //Adding the event listner
+      startButton.addEventListener("click", () => {
+        chessimage.classList.add("hidden");
+        headline.classList.add("hidden");
+
+        // Start the game
+        startGame();
+      });
+      startButton2.addEventListener("click", () => {
+        chessimage.classList.add("hidden");
+        headline.classList.add("hidden");
+
+        // Start the game
+        startGame();
+      });
+      function startGame() {
+        console.log("Time for waiting screen");
+        //show the waiting screen
+        waitingScreen.classList.remove("hidden");
+        rest.classList.add("hidden");
+        // Send a request to the server to start the game
+        socket.emit("startGame");
+        // Listen for the "gameStarted" event from the server
+        socket.on("gameStarted", () => {
+          // Hide the waiting screen
+          waitingScreen.classList.add("hidden");
+
+          rest.classList.remove("hidden");
+          // Show the chessboard container
+          chessboardid.classList.remove("hidden");
+          call.classList.remove("hidden");
+          videos.classList.remove("hidden");
+          //then the video streaming will start-
+          startVideo();
+
+          // Start the game logic
+          console.log("Game started!");
+        });
+      }
+    </script>
+  </body>
+</html>

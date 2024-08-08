@@ -1,0 +1,35 @@
+To achieve this, you can create a new HTML file, let's call it index.html, that will serve as the entry point for your application. This file will contain a simple form that asks for the user's name. Once the user submits their name, you can redirect them to the main chess game screen.
+
+Here's an example of what index.html could look like:
+
+
+
+In this example, we're using the localStorage API to store the user's name in the browser's local storage. This will allow us to retrieve the username on the main chess game screen.
+
+Next, you'll need to modify your main chess game screen (let's call it main.html) to retrieve the username from local storage and display it on the top of the page. Here's an updated version of your main.html file:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ... (rest of the head section remains the same) -->
+</head>
+<body>
+  <!-- ... (rest of the body section remains the same) -->
+  <div id="headline" class="flex items-center justify-cwhite teenter">
+    <h1 id="username-display" class="font-bold text-xt-5xl justify-center items-center"></h1>
+  </div>
+  <!-- ... (rest of the body section remains the same) -->
+
+  <script>
+    // Retrieve the username from local storage
+    const username = localStorage.getItem('username');
+    if (username) {
+      // Display the username on the top of the page
+      document.getElementById('username-display').textContent = `Welcome, ${username}!`;
+    }
+  </script>
+</body>
+</html>
+
+In this updated version, we're retrieving the username from local storage using the localStorage.getItem() method. If a username is found, we're displaying it on the top of the page using the username-display element.
+
+Note that you'll need to update the file names and paths to match your specific use case. Additionally, you may want to consider implementing additional validation and error handling to ensure that the username is properly stored and retrieved.
