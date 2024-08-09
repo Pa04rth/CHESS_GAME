@@ -1,0 +1,13 @@
+{
+  "hosting": {
+    "site": "chess-io-7834f-148ae",
+    "public": "views",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
