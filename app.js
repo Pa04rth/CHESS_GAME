@@ -31,10 +31,10 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.static(path.join(__dirname, "public"))); // we may now use static things like css
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/views/front.html");
+  res.sendFile(__dirname + "/views/index.html");
 });
 app.get("/game", (req, res) => {
-  res.render("index", { title: "ChessGame" });
+  res.render("frontpage", { title: "ChessGame" });
 });
 //WHen a new user will connect to the game
 io.on("connection", function (uniquesocket) {
